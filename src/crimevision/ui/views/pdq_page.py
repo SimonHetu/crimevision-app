@@ -7,14 +7,17 @@ from PySide6.QtWidgets import (
 from crimevision.core.services.pdq_service import PdqService
 
 
+# Page qui affiche la liste des PDQ avec une recherche simple (lecture seule)
 class PdqPage(QWidget):
     def __init__(self):
         super().__init__()
         self.service = PdqService()
 
+        # Layout principal de la page (titre + recherche + table + boutons)
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("PDQs"))
 
+        # Barre de recherche (par id ou nom) avec actions Search et Clear
         top = QHBoxLayout()
         self.search_in = QLineEdit()
         self.search_in.setPlaceholderText("Search by PDQ id or name…")
@@ -25,6 +28,7 @@ class PdqPage(QWidget):
         top.addWidget(self.btn_clear)
         layout.addLayout(top)
 
+        # Table principale qui affiche les informations d’un PDQ (colonnes principales)
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "Name", "Address", "CityCode", "Lat", "Lon"])
@@ -33,26 +37,32 @@ class PdqPage(QWidget):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         layout.addWidget(self.table)
 
+        # Rangée de boutons d’action (recharger la liste)
         btn_row = QHBoxLayout()
         self.btn_refresh = QPushButton("Reload")
         btn_row.addWidget(self.btn_refresh)
         btn_row.addStretch(1)
         layout.addLayout(btn_row)
 
+        # Connexions des interactions utilisateur (boutons + Enter) vers refresh/clear
         self.btn_refresh.clicked.connect(self.refresh)
         self.btn_search.clicked.connect(self.refresh)
         self.btn_clear.clicked.connect(self.clear_search)
         self.search_in.returnPressed.connect(self.refresh)
 
+        # Menu contextuel (clic droit) qui permet de rafraîchir rapidement
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.show_context_menu)
 
+        # Chargement initial des données
         self.refresh()
 
+    # Réinitialise la recherche puis recharge la table
     def clear_search(self):
         self.search_in.setText("")
         self.refresh()
-
+    
+    # Récupère l’ID du PDQ sélectionné dans la table (ou None si rien n’est sélectionné)
     def _selected_pdq_id(self) -> int | None:
         row = self.table.currentRow()
         if row < 0:
@@ -62,6 +72,7 @@ class PdqPage(QWidget):
             return None
         return item.data(Qt.UserRole)
 
+    # Recharge la liste depuis la DB selon la recherche et remplit la table UI
     def refresh(self):
         try:
             pdqs = self.service.list_pdqs(limit=200, search=self.search_in.text().strip())
@@ -84,6 +95,7 @@ class PdqPage(QWidget):
 
         self.table.resizeColumnsToContents()
 
+    # Affiche un petit menu contextuel permettant de rafraîchir la liste
     def show_context_menu(self, pos: QPoint):
         menu = QMenu(self)
         act_refresh = menu.addAction("Refresh")

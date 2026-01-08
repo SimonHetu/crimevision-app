@@ -7,7 +7,6 @@ class User(BaseModel):
     email = CharField(unique=True)
     name = CharField()
     pseudo = CharField()
-
     createdAt = DateTimeField(null=True)
     updatedAt = DateTimeField(null=True)
     hashedPassword = CharField()

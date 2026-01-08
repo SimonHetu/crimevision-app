@@ -1,0 +1,9 @@
+bcrypt==5.0.0
+-e file:///D:/HellScape_Gdrive/Projects/crimevision-app
+peewee==3.19.0
+psycopg2-binary==2.9.11
+pyside6==6.10.1
+pyside6-addons==6.10.1
+pyside6-essentials==6.10.1
+python-dotenv==1.2.1
+shiboken6==6.10.1

@@ -31,22 +31,18 @@ class IncidentsPage(QWidget):
 
         # Combo PDQ : permet de filtrer par poste de quartier (ou "All PDQs")
         self.pdq_combo = QComboBox()
-        self.pdq_combo.addItem("All PDQs", None)
+        self.pdq_combo.addItem("Tout les PDQs", None)
 
         # Combo période : filtre temporel (tout, 24h, 7 jours, 30 jours)
         self.period_combo = QComboBox()
-        self.period_combo.addItem("All time", "all")
-        self.period_combo.addItem("Last 24h", "day")
-        self.period_combo.addItem("Last 7 days", "week")
-        self.period_combo.addItem("Last 30 days", "month")
+        self.period_combo.addItem("Tout", "all")
+        self.period_combo.addItem("24h", "day")
+        self.period_combo.addItem("7 jours", "week")
+        self.period_combo.addItem("30 jours", "month")
         
         # Champ type : filtre optionnel sur la catégorie exacte de l'incident
         self.type_in = QLineEdit()
-        self.type_in.setPlaceholderText("Type (optional)")
-
-        # Champ recherche : filtre texte (ex: adresse/description selon ce que le service supporte)
-        self.search_in = QLineEdit()
-        self.search_in.setPlaceholderText("Search address/desc…")
+        self.type_in.setPlaceholderText("Categorie (optionel)")
 
         # Limite : contrôle du nombre maximum de lignes chargées depuis la base
         self.limit_spin = QSpinBox()
@@ -54,16 +50,15 @@ class IncidentsPage(QWidget):
         self.limit_spin.setValue(200)
 
         # Bouton refresh : recharge les incidents selon les filtres actuels
-        self.btn_refresh = QPushButton("Refresh")
+        self.btn_refresh = QPushButton("Reload")
 
          # Assemblage de la barre de filtres dans l'ordre d'utilisation
         filters.addWidget(QLabel("PDQ:"))
         filters.addWidget(self.pdq_combo)
-        filters.addWidget(QLabel("Period:"))
+        filters.addWidget(QLabel("Période:"))
         filters.addWidget(self.period_combo)
         filters.addWidget(self.type_in, 1)
-        filters.addWidget(self.search_in, 2)
-        filters.addWidget(QLabel("Limit:"))
+        filters.addWidget(QLabel("Limite:"))
         filters.addWidget(self.limit_spin)
         filters.addWidget(self.btn_refresh)
 
@@ -92,7 +87,6 @@ class IncidentsPage(QWidget):
         self.pdq_combo.currentIndexChanged.connect(self.refresh)
         self.period_combo.currentIndexChanged.connect(self.refresh)
         self.type_in.returnPressed.connect(self.refresh)
-        self.search_in.returnPressed.connect(self.refresh)
 
         # Chargement initial des PDQs dans la liste déroulante + premier affichage des incidents
         self._load_pdqs()
@@ -125,7 +119,6 @@ class IncidentsPage(QWidget):
         pdq_id = self.pdq_combo.currentData()
         period = self.period_combo.currentData()
         type_filter = self.type_in.text().strip()
-        search = self.search_in.text().strip()
         limit = int(self.limit_spin.value())
 
         # Appel au service pour obtenir la liste filtrée; affiche une erreur si la DB échoue
@@ -135,8 +128,8 @@ class IncidentsPage(QWidget):
                 pdq_id=pdq_id,
                 period=period,
                 type_filter=type_filter,
-                search=search,
             )
+
         except Exception as e:
             QMessageBox.critical(self, "DB Error", str(e))
             return
@@ -176,14 +169,14 @@ class IncidentsPage(QWidget):
     # Affiche un menu contextuel (clic droit) avec actions rapides
     def show_context_menu(self, pos: QPoint):
         menu = QMenu(self)
-        act_refresh = menu.addAction("Refresh")
+        act_refresh = menu.addAction("Reload")
         menu.addSeparator()
 
         # Action copie : exporte la ligne sélectionnée en texte (utile pour debug/partage)
-        act_copy = menu.addAction("Copy selected as text")
+        act_copy = menu.addAction("Copier la selection en texte")
 
         # Action suppression : supprime l'incident sélectionné (action sensible)
-        act_delete = menu.addAction("Delete selected… (careful)")
+        act_delete = menu.addAction("Delete selection… (Prudence)")
 
         # Active/désactive les actions selon si une ligne est sélectionnée
         has_sel = self._selected_incident_id() is not None
@@ -226,7 +219,7 @@ class IncidentsPage(QWidget):
         confirm = QMessageBox.question(
             self,
             "Delete incident",
-            f"Delete incident #{inc_id}? This cannot be undone.",
+            f"Delete incident #{inc_id}?",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )

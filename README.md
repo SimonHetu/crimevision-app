@@ -31,11 +31,15 @@ cd crimevision-app
 ### 2.Installation des dépendances avec UV 
 uv sync
 
-## 3.Création du fichier .env
+### 3.Création du fichier .env
 cp .env.example .env
 
-## 4.Remplir avec les informations de Neon
+### 4.Remplir avec les informations de Neon
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DBNAME"
 
-## 5.Lancer l'application 
+### 5.Lancer l'application 
 uv run crimevision-app
+
+
+## 🗄 Requirement.txt
+Le fichier requirements.txt a été généré à partir de l’environnement virtuel avec uv pip freeze garantissant que les dépendances nécessaires pour exécuter l’application sont listées.

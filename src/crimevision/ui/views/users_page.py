@@ -1,21 +1,31 @@
+# Outils Qt pour interactions
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
     QHBoxLayout, QPushButton, QMessageBox, QMenu, QDialog
 )
+
+# Utilisé pour convertir/afficher les dates au format local
 from datetime import datetime, timezone
+
+# Service responsable des opérations DB liées aux utilisateurs (CRUD)
 from crimevision.core.services.user_service import UserService
+
+# Boîte de dialogue UI utilisée pour ajouter/modifier un utilisateur
 from crimevision.ui.views.user_dialog import UserDialog
 
 
+# Page d’administration qui permet de consulter et gérer les utilisateurs (CRUD complet)
 class UsersPage(QWidget):
     def __init__(self):
         super().__init__()
         self.service = UserService()
 
+        # Layout principal de la page (titre + table + boutons)
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Users"))
 
+        # Table principale qui affiche les colonnes de la table User (ID, email, etc.)
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "Email", "Name", "Pseudo", "Created", "Updated"])
@@ -25,7 +35,7 @@ class UsersPage(QWidget):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         layout.addWidget(self.table)
 
-        # Buttons
+        # Rangée de boutons pour exécuter les actions admin (refresh, add, edit, delete)
         btn_row = QHBoxLayout()
         self.btn_refresh = QPushButton("Refresh")
         self.btn_add = QPushButton("Add")
@@ -39,20 +49,23 @@ class UsersPage(QWidget):
         btn_row.addWidget(self.btn_delete)
         layout.addLayout(btn_row)
 
+        # Connexions des boutons aux fonctions de gestion (CRUD)
         self.btn_refresh.clicked.connect(self.refresh)
         self.btn_add.clicked.connect(self.add_user)
         self.btn_edit.clicked.connect(self.edit_selected_user)
         self.btn_delete.clicked.connect(self.delete_selected_user)
 
-        # Context menu (right click)
+        # Menu contextuel (clic droit) pour déclencher les mêmes actions rapidement
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.show_context_menu)
 
-        # double click row = edit
+        # Double-clic sur une ligne = ouverture directe de la fenêtre d’édition
         self.table.itemDoubleClicked.connect(lambda _: self.edit_selected_user())
 
+        # Chargement initial des données
         self.refresh()
 
+    # Récupère l’ID de l’utilisateur sélectionné dans la table (ou None si rien n’est sélectionné)
     def _selected_user_id(self) -> int | None:
         row = self.table.currentRow()
         if row < 0:
@@ -62,6 +75,8 @@ class UsersPage(QWidget):
             return None
         return item.data(Qt.UserRole)
     
+
+    # Formate une date de la DB en heure locale lisible
     def fmt_local(self, dt):
         if not dt:
             return ""
@@ -70,6 +85,7 @@ class UsersPage(QWidget):
             dt = dt.replace(tzinfo=timezone.utc)
         return dt.astimezone().strftime("%Y-%m-%d %H:%M")
 
+    # Recharge la liste d’utilisateurs depuis la DB et remplit la table UI
     def refresh(self):
         try:
             users = self.service.list_users(limit=50)
@@ -94,6 +110,7 @@ class UsersPage(QWidget):
 
         self.table.resizeColumnsToContents()
 
+    # Affiche un menu contextuel permettant d’exécuter les actions CRUD sur la sélection
     def show_context_menu(self, pos: QPoint):
         menu = QMenu(self)
 
@@ -117,6 +134,7 @@ class UsersPage(QWidget):
         elif chosen == act_del:
             self.delete_selected_user()
 
+    # Ouvre une fenêtre pour créer un nouvel utilisateur, valide les champs, puis enregistre en DB
     def add_user(self):
         dlg = UserDialog(title="Add user", edit_mode=False, parent=self)
         if dlg.exec() != QDialog.Accepted:
@@ -126,7 +144,7 @@ class UsersPage(QWidget):
         email, name, pseudo, password = dlg.values()
 
         if not email or not name or not pseudo or not password:
-            QMessageBox.warning(self, "Validation", "Email, Name, and Password are required.")
+            QMessageBox.warning(self, "Validation", "Email, Name, et Password requis.")
             return
 
         try:
@@ -135,6 +153,7 @@ class UsersPage(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Add failed", str(e))
 
+    # Ouvre une fenêtre pour modifier l’utilisateur sélectionné et applique les changements en DB
     def edit_selected_user(self):
         user_id = self._selected_user_id()
         if user_id is None:
@@ -177,7 +196,7 @@ class UsersPage(QWidget):
             QMessageBox.critical(self, "Edit failed", str(e))
 
 
-
+    # Supprime l’utilisateur sélectionné après confirmation et met à jour l’interface
     def delete_selected_user(self):
         user_id = self._selected_user_id()
         if user_id is None:
