@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from crimevision.core.db.database import init_db, close_db
 from crimevision.ui.views.main_window import MainWindow
-from crimevision.ui.views.login_page import LoginPage   # ✅ ADD THIS
+from crimevision.ui.views.login_page import LoginPage
 from crimevision.ui.theme.theme_manager import apply_theme
 
 

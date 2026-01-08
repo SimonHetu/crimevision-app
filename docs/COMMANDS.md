@@ -1,2 +1,2 @@
 # Run
-uv run python crimevision
+uv run crimevision-app

@@ -6,13 +6,12 @@ db_proxy = DatabaseProxy()
 
 def init_db(db_url: str | None = None):
     """
-    Initialize the peewee database (once).
-    Call this AFTER load_dotenv() in main().
+    Initialise la base de donnée peewee
     """
     if not db_url:
         db_url = os.environ.get("DATABASE_URL")
     if not db_url:
-        raise RuntimeError("DATABASE_URL missing")
+        raise RuntimeError("DATABASE_URL manquante")
 
     db = connect(db_url)
     db_proxy.initialize(db)
@@ -20,11 +19,11 @@ def init_db(db_url: str | None = None):
 
 def get_db():
     """
-    Return the initialized database.
+    Retourne la base de données initialisée
     """
     db = db_proxy.obj
     if db is None:
-        raise RuntimeError("DB not initialized. Call init_db() first.")
+        raise RuntimeError("La base de donnée n'est pas initialisée")
     return db
 
 def close_db():
