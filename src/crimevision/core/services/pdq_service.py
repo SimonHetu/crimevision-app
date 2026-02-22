@@ -23,3 +23,16 @@ class PdqService:
             }
             for p in q
         ]
+    
+    def get_pdq_by_id(self, pdq_id: int) -> Optional[Dict]:
+        p = Pdq.get_or_none(Pdq.id == pdq_id)
+        if not p:
+            return None
+        return {
+            "id": p.id,
+            "name": p.name,
+            "address": p.address,
+            "cityCode": p.cityCode,
+            "latitude": p.latitude,
+            "longitude": p.longitude,
+        }

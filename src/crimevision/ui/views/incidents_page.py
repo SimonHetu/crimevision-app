@@ -12,6 +12,7 @@ from crimevision.core.services.incident_service import IncidentService
 # Service qui fournit la liste des PDQs
 from crimevision.core.services.pdq_service import PdqService
 
+from crimevision.ui.views.incident_detail_dialog import IncidentDetailDialog
 
 # Page "Incidents" : écran qui affiche les incidents avec filtres, tableau et actions contextuelles
 class IncidentsPage(QWidget):
@@ -72,6 +73,8 @@ class IncidentsPage(QWidget):
             ["ID", "Date", "PDQ", "Category", "TimePeriod", "Source", "SourceId", "X", "Y", "Lon/Lat"]
         )
 
+        self.table.itemDoubleClicked.connect(lambda _: self.open_details())
+        
         # Configuration du tableau : sélection de lignes, une seule ligne à la fois, et aucune édition
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
@@ -102,6 +105,13 @@ class IncidentsPage(QWidget):
         for p in pdqs:
             self.pdq_combo.addItem(f'{p["id"]} - {p.get("name","")}', int(p["id"]))
 
+    def open_details(self):
+        inc_id = self._selected_incident_id()
+        if inc_id is None:
+            return
+        dlg = IncidentDetailDialog(incident_id=inc_id, parent=self)
+        dlg.exec()
+        
     # Récupère l'ID de l'incident sélectionné (stocké dans Qt.UserRole de la colonne ID)
     def _selected_incident_id(self) -> int | None:
         row = self.table.currentRow()

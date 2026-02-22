@@ -9,8 +9,9 @@ dependencies = [
   "pyside6>=6.7",
   "peewee>=3.17",
   "psycopg2-binary>=2.9",
-  "python-dotenv>=1.0",  
+  "python-dotenv>=1.0",
   "bcrypt>=5.0.0",
+  "matplotlib>=3.10.8",
 ]
 
 [build-system]

@@ -1,3 +1,13 @@
+/* === COLOR SYSTEM ===
+MAIN_BG       #0f172a
+CARD_BG       #1e293b
+ACCENT        #7c3aed
+ACCENT_LIGHT  #a78bfa
+ACCENT_DARK   #5b21b6
+TEXT_MAIN     #f8fafc
+*/
+
+
 
 QWidget {
     background-color: #0f172a;
@@ -34,4 +44,44 @@ QTableWidget::item {
 QTableCornerButton::section {
     background-color: #0b1220;
     border: 0px;
+}
+
+
+/* ===== Bouttons ===== */
+
+QPushButton {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #f8fafc;
+}
+
+QPushButton:hover {
+    border: 1px solid #3b82f6;
+    background-color: #1e3a8a;
+}
+
+QPushButton:pressed {
+    border: 1px solid #60a5fa;
+    background-color: #1d4ed8;
+}
+
+
+QPushButton:checked {
+    border: 1px solid #3b82f6;
+    background-color: #1e3a8a;
+}
+
+
+
+QListWidget {
+    background-color: #0b1220;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+QListWidget::item {
+    padding: 6px;
 }

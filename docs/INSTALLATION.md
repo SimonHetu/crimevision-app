@@ -4,7 +4,7 @@
 uv init
 uv venv
 
-# Dependencies
+# Dependences
 
 uv add pyside6 peewee  
 uv add peewee
