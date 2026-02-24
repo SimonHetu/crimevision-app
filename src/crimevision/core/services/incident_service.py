@@ -106,6 +106,18 @@ class IncidentService:
     def delete_incident(self, incident_id: int) -> None:
         Incident.delete().where(Incident.id == incident_id).execute()
 
+    def list_categories(self) -> List[str]:
+        """
+        Returns distinct non-null categories sorted A-Z.
+        """
+        q = (
+            Incident.select(Incident.category)
+            .where(Incident.category.is_null(False))
+            .distinct()
+            .order_by(Incident.category.asc())
+        )
+        return [r.category for r in q if r.category]
+    
     def _count_unique_pdqs_all_time(self) -> int:
         q = (
             Incident.select(Incident.pdqId)

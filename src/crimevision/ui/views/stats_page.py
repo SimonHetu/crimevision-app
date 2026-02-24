@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import traceback
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QWidget,
@@ -13,6 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from crimevision.core.services.incident_service import IncidentService
+from crimevision.core.db.database import get_db
 
 
 def _card(title: str) -> tuple[QFrame, QVBoxLayout, QLabel]:
@@ -52,9 +55,9 @@ class StatsPage(QWidget):
         title.setObjectName("pageTitle")
         root.addWidget(title)
 
-        # ------------------------------------------------------------
+        # -------------------------
         # Toolbar (période + refresh)
-        # ------------------------------------------------------------
+        # -------------------------
         toolbar = QHBoxLayout()
         toolbar.setSpacing(10)
 
@@ -64,7 +67,7 @@ class StatsPage(QWidget):
         self.days_combo.addItem("7 jours", 7)
         self.days_combo.addItem("30 jours", 30)
         self.days_combo.addItem("90 jours", 90)
-        self.days_combo.setCurrentIndex(1)  # 30 jours
+        self.days_combo.setCurrentIndex(1)
         toolbar.addWidget(self.days_combo)
 
         toolbar.addStretch(1)
@@ -77,14 +80,14 @@ class StatsPage(QWidget):
         self.btn_refresh.clicked.connect(self.refresh)
         self.days_combo.currentIndexChanged.connect(self.refresh)
 
-        # ------------------------------------------------------------
-        # Main grid: Left lists + Right chart
-        # ------------------------------------------------------------
+        # -------------------------
+        # Main layout
+        # -------------------------
         main = QHBoxLayout()
         main.setSpacing(10)
         root.addLayout(main, 1)
 
-        # LEFT column (lists)
+        # LEFT column
         left_col = QVBoxLayout()
         left_col.setSpacing(10)
         main.addLayout(left_col, 1)
@@ -114,17 +117,16 @@ class StatsPage(QWidget):
         self._init_chart()
         self.refresh()
 
-    # ------------------------------------------------------------
-    # Matplotlib setup + dark theme
-    # ------------------------------------------------------------
+    # -------------------------
+    # Matplotlib setup
+    # -------------------------
     def _init_chart(self):
-        """Init matplotlib canvas (optional dep)."""
         try:
             from matplotlib.figure import Figure
             from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
         except Exception:
             lay = QVBoxLayout(self._chart_container)
-            msg = QLabel("Matplotlib not installed.\nChart disabled (lists still work).")
+            msg = QLabel("Matplotlib not installed.\nChart disabled.")
             msg.setAlignment(Qt.AlignCenter)
             lay.addWidget(msg, 1)
             self._chart_ready = False
@@ -143,10 +145,9 @@ class StatsPage(QWidget):
         self._chart_ready = True
 
     def _style_dark_chart(self, fig, ax):
-        """Apply a dark theme to matplotlib so it matches QSS."""
-        panel = "#0b1220"   # card
-        fg = "#e2e8f0"      # text
-        grid = "#334155"    # borders/grid
+        panel = "#0b1220"
+        fg = "#e2e8f0"
+        grid = "#334155"
 
         fig.patch.set_facecolor(panel)
         ax.set_facecolor(panel)
@@ -160,38 +161,52 @@ class StatsPage(QWidget):
         for spine in ax.spines.values():
             spine.set_color(grid)
 
-    # ------------------------------------------------------------
-    # Data refresh
-    # ------------------------------------------------------------
+    # -------------------------
+    # Refresh logic
+    # -------------------------
     def refresh(self):
         days = int(self.days_combo.currentData() or 30)
 
-        # Lists (top categories / pdqs)
+        # Ensure Neon connection is alive
+        try:
+            get_db()
+        except Exception as e:
+            print("DB reconnect error:", e)
+            traceback.print_exc()
+
+        # ---------- Top Categories ----------
         try:
             top_cat = self.incident_service.top_categories(days=days, limit=10)
-        except Exception:
+        except Exception as e:
+            print("top_categories error:", e)
+            traceback.print_exc()
             top_cat = []
 
         self.list_cat.clear()
         for x in top_cat:
             self.list_cat.addItem(f"{x['category']} — {x['count']}")
 
+        # ---------- Top PDQs ----------
         try:
             top_pdq = self.incident_service.top_pdqs(days=days, limit=10)
-        except Exception:
+        except Exception as e:
+            print("top_pdqs error:", e)
+            traceback.print_exc()
             top_pdq = []
 
         self.list_pdq.clear()
         for x in top_pdq:
             self.list_pdq.addItem(f"PDQ {x['pdqId']} — {x['count']}")
 
-        # Chart (incidents per day)
+        # ---------- Chart ----------
         if not (self._chart_ready and self._chart_ax and self._chart_canvas):
             return
 
         try:
             series = self.incident_service.count_by_day(days=days)
-        except Exception:
+        except Exception as e:
+            print("count_by_day error:", e)
+            traceback.print_exc()
             series = []
 
         ax = self._chart_ax
@@ -208,8 +223,6 @@ class StatsPage(QWidget):
             ax.set_title(f"Incidents par jour — {days} jours")
             ax.set_xlabel("Jour")
             ax.set_ylabel("Incidents")
-
-            # labels lisibles (évite overlap)
             ax.tick_params(axis="x", labelrotation=30)
         else:
             ax.text(0.5, 0.5, "No data", ha="center", va="center", color="#e2e8f0")

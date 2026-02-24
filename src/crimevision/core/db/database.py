@@ -1,4 +1,5 @@
 import os
+from peewee import OperationalError
 from peewee import DatabaseProxy
 from playhouse.db_url import connect
 
@@ -28,20 +29,32 @@ def init_db(db_url: str | None = None):
     return db
 
 # Retourne une instance valide de la base de données
+
+
 def get_db():
     """
-    Retourne la base de données initialisée
+    Retourne la base de données initialisée + s'assure qu'elle est vivante.
+    (Neon peut dropper les connexions idle.)
     """
-
-    # Récupération de la base associée au proxy
     db = db_proxy.obj
-
-    # Sécurité : empêche l’utilisation de la DB avant init_db()
     if db is None:
         raise RuntimeError("La base de donnée n'est pas initialisée")
-    
-    # Réouvre la connexion si elle a été fermée
-    if db.is_closed():
+
+    try:
+        if db.is_closed():
+            db.connect(reuse_if_open=True)
+
+        # Ping pour détecter une connexion zombie (idle drop)
+        db.execute_sql("SELECT 1;")
+
+    except Exception:
+        # Si la connexion est morte, on ferme et on reconnecte proprement
+        try:
+            if not db.is_closed():
+                db.close()
+        except Exception:
+            pass
+
         db.connect(reuse_if_open=True)
 
     return db
