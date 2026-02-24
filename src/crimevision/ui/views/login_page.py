@@ -14,31 +14,40 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 
-# Page de connexion affichée au démarrage de l’application
+
+# =========================================================
+# LOGIN PAGE — CrimeVision
+# ---------------------------------------------------------
+# Rôle :
+# - Page de connexion affichée au démarrage
+# - Watermark (grand logo) en arrière-plan
+# - Carte au centre avec champs + bouton
+# - Émet un signal loginRequested(user, pwd)
+# =========================================================
 class LoginPage(QWidget):
-    
     # Signal émis lorsque l’utilisateur soumet ses identifiants
     loginRequested = Signal(str, str)
-    
 
-    # Initialisation de l’interface de login
     def __init__(self, assets_dir: Path):
         super().__init__()
         self.assets_dir = assets_dir
 
-        # Layout racine de la page
+        # -------------------------
+        # Layout racine
+        # -------------------------
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Conteneur d’arrière-plan (watermark / style global)
+        # -------------------------
+        # Background (watermark)
+        # -------------------------
         bg = QFrame()
         bg.setObjectName("loginBg")
         bg_layout = QVBoxLayout(bg)
         bg_layout.setContentsMargins(0, 0, 0, 0)
         bg_layout.setSpacing(0)
 
-        # Logo affiché en arrière-plan
         self.watermark = QLabel()
         self.watermark.setObjectName("loginWatermark")
         self.watermark.setAlignment(Qt.AlignCenter)
@@ -46,7 +55,9 @@ class LoginPage(QWidget):
         self.watermark.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         bg_layout.addWidget(self.watermark, 1)
 
-        # Conteneur de premier plan (contenu interactif)
+        # -------------------------
+        # Foreground (contenu)
+        # -------------------------
         fg = QWidget()
         fg.setObjectName("loginFg")
         fg_layout = QVBoxLayout(fg)
@@ -54,98 +65,99 @@ class LoginPage(QWidget):
         fg_layout.setSpacing(14)
         fg_layout.addStretch()
 
-        # Carte centrale contenant le formulaire de connexion
+        # -------------------------
+        # Carte centrale
+        # -------------------------
         card = QFrame()
         card.setObjectName("loginCard")
         card.setFixedWidth(420)
+
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(20, 20, 20, 20)
         card_layout.setSpacing(12)
 
-        # En-tête de la carte (logo + titre)
-        header = QHBoxLayout()
-        header.setSpacing(12)
-
-        self.logo_small = QLabel()
-        self.logo_small.setObjectName("loginLogoSmall")
-        self.logo_small.setFixedSize(40, 40)
-        self.logo_small.setScaledContents(True)
-
-        title_col = QVBoxLayout()
-        title_col.setSpacing(2)
+        # En-tête : seulement le titre (plus minimal)
         title = QLabel("CrimeVision")
         title.setObjectName("loginTitle")
-        subtitle = QLabel("Admin access")
+        card_layout.addWidget(title)
+
+        # (Optionnel) sous-titre plus clean que "Admin access"
+        subtitle = QLabel("Console d’administration")
         subtitle.setObjectName("loginSubtitle")
-        title_col.addWidget(title)
-        title_col.addWidget(subtitle)
+        card_layout.addWidget(subtitle)
 
-        header.addWidget(self.logo_small)
-        header.addLayout(title_col)
-        header.addStretch()
-        card_layout.addLayout(header)
-
-        # Champs de saisie utilisateur (identifiant et mot de passe)
+        # -------------------------
+        # Champs
+        # -------------------------
         self.username = QLineEdit()
         self.username.setObjectName("loginInput")
-        self.username.setPlaceholderText("Email or username")
+        self.username.setPlaceholderText("Email ou nom d’utilisateur")
 
         self.password = QLineEdit()
         self.password.setObjectName("loginInput")
-        self.password.setPlaceholderText("Password")
+        self.password.setPlaceholderText("Mot de passe")
         self.password.setEchoMode(QLineEdit.Password)
 
         card_layout.addWidget(self.username)
         card_layout.addWidget(self.password)
 
-        # Zone d’action contenant le bouton de connexion
+        # -------------------------
+        # Bouton
+        # -------------------------
         btn_row = QHBoxLayout()
         btn_row.addStretch()
-        self.login_btn = QPushButton("Login")
+
+        self.login_btn = QPushButton("Connexion")
         self.login_btn.setObjectName("loginButton")
         self.login_btn.clicked.connect(self._emit_login)
+
         btn_row.addWidget(self.login_btn)
         card_layout.addLayout(btn_row)
 
         fg_layout.addWidget(card, 0, Qt.AlignHCenter)
 
-        # Texte d’aide informatif sous la carte
-        help_text = QLabel("Pour l'instant tout mot de passe et identifiant fonctionne")
+        # Petit texte d’aide (plus neutre que “tout mot de passe marche”)
+        help_text = QLabel("")
         help_text.setObjectName("loginHelp")
         fg_layout.addWidget(help_text, 0, Qt.AlignHCenter)
+
         fg_layout.addStretch()
 
-        # Assemblage final des couches background / foreground
+        # -------------------------
+        # Assemblage
+        # -------------------------
         root.addWidget(bg)
         root.addWidget(fg, 0, Qt.AlignCenter)
 
-        # Validation du login avec la touche Entrée
+        # UX : Enter sur username -> focus password, Enter sur password -> login
+        self.username.returnPressed.connect(self.password.setFocus)
         self.password.returnPressed.connect(self._emit_login)
 
-        # Chargement des logos depuis les assets
-        self._load_logos()
+        # Focus initial
+        self.username.setFocus()
 
-        # Application des styles spécifiques à la page de login
+        # Chargement images + styles
+        self._load_logos()
         self._apply_login_styles()
 
-
-    # Chargement du logo principal et du watermark
+    # =========================================================
+    # Chargement du logo principal (watermark)
+    # =========================================================
     def _load_logos(self):
         logo_path = self.assets_dir / "crimevision_logo_10.png"
         if logo_path.exists():
             pix = QPixmap(str(logo_path))
             if not pix.isNull():
-                self.logo_small.setPixmap(pix)
                 big = pix.scaledToWidth(520, Qt.SmoothTransformation)
                 self.watermark.setPixmap(big)
                 return
-        self.logo_small.setText("🧿")
         self.watermark.setText("")
 
-    # Application du style visuel (QSS) propre à la page de login
+    # =========================================================
+    # Styles (QSS)
+    # =========================================================
     def _apply_login_styles(self):
         self.setStyleSheet("""
-        /* Let your global QWidget theme handle the background */
         #loginFg { background: transparent; }
 
         #loginCard {
@@ -156,13 +168,14 @@ class LoginPage(QWidget):
 
         #loginTitle {
             color: #f8fafc;
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
         }
 
         #loginSubtitle {
             color: #94a3b8;
             font-size: 12px;
+            margin-bottom: 6px;
         }
 
         #loginInput {
@@ -195,7 +208,9 @@ class LoginPage(QWidget):
         }
         """)
 
+    # =========================================================
     # Émet le signal de connexion vers la fenêtre principale
+    # =========================================================
     def _emit_login(self):
         user = self.username.text().strip()
         pwd = self.password.text()

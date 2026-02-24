@@ -85,3 +85,17 @@ QListWidget {
 QListWidget::item {
     padding: 6px;
 }
+
+/* ===== Login (hierarchy) ===== */
+#loginTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+#loginSubtitle {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    margin-top: 2px;
+}
