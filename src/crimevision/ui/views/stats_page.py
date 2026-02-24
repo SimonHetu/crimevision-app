@@ -311,19 +311,15 @@ class StatsPage(QWidget):
         self._style_dark_chart(fig, ax)
 
         if series:
-            xs = [p["day"] for p in series]
+            xs = [p["day"] for p in series]   # strings "YYYY-MM-DD"
             ys = [p["count"] for p in series]
 
-            ax.plot(xs, ys, marker="o", linewidth=2)
+            n = len(xs)
+            x_idx = list(range(n))            # X = indices (robuste)
 
-            # Ajustement dynamique des labels X selon la période
-            if days >= 90:
-                ax.tick_params(axis="x", labelsize=6, rotation=45)
-            elif days >= 30:
-                ax.tick_params(axis="x", labelsize=8, rotation=30)
-            else:
-                ax.tick_params(axis="x", labelsize=10, rotation=20)
+            ax.plot(x_idx, ys, marker="o", linewidth=2)
 
+            # Titre dynamique
             if self._selected_category:
                 ax.set_title(f"{self._selected_category} — incidents/jour — {days} jours")
             else:
@@ -331,8 +327,32 @@ class StatsPage(QWidget):
 
             ax.set_xlabel("Jour")
             ax.set_ylabel("Incidents")
-            ax.tick_params(axis="x", labelrotation=30)
+
+            if days >= 90:
+                step = 7 
+                labelsize = 7
+                rotation = 30
+            elif days >= 30:
+                step = 2
+                labelsize = 8
+                rotation = 30
+            else:
+                step = 1
+                labelsize = 9
+                rotation = 20
+
+            tick_idx = list(range(0, n, step))
+            ax.set_xticks(tick_idx)
+
+            ax.set_xticklabels([xs[i] for i in tick_idx], rotation=rotation, ha="right")
+            ax.set_xlabel("Jour", labelpad=12)
+            ax.set_ylabel("Incidents", labelpad=10)
+            ax.tick_params(axis="x", labelsize=labelsize)
+
         else:
+            ax.set_title("Incidents par jour")
+            ax.set_xlabel("Jour")
+            ax.set_ylabel("Incidents")
             ax.text(0.5, 0.5, "No data", ha="center", va="center", color="#e2e8f0")
 
         fig.tight_layout()
