@@ -7,9 +7,11 @@ CrimeVision est une application desktop (PySide6) qui permet de visualiser et ex
 ## ✨ Fonctionnalités
 
 - **Dashboard** : KPIs (total incidents, 7 jours, nombre de PDQs, users), tableaux récents, classements (Top PDQs / catégories).
-- **Incidents** : filtres (PDQ, période, type, recherche, limite), tableau complet, copie rapide, suppression (optionnelle).
+- **Stats** : graphique **incidents par jour** (7 / 30 / 90 jours), **Top catégories** (clic = filtre du graphique), **Top PDQs**.
+- **Incidents** : filtres (PDQ, période, catégorie, limite), tableau complet, copie rapide, suppression (optionnelle).
 - **PDQs** : liste + recherche (lecture seule).
 - **Users** : listing + statistiques.
+- **Imports** : exécution de scripts d’import backend (Incidents avec `--max`, Latest Incidents), logs intégrés + stop.
 
 ---
 
@@ -17,29 +19,35 @@ CrimeVision est une application desktop (PySide6) qui permet de visualiser et ex
 
 - **Python 3.12+**
 - **uv** installé (https://docs.astral.sh/uv/)
+- Une base PostgreSQL (ex: **Neon**)
 
 ---
 
 ## 📦 Installation (clone + dépendances)
 
-### 1.Cloner le projet
+### 1. Cloner le projet
 
-git clone https://github.com/SimonHetu/crimevision-app.git
+git clone https://github.com/SimonHetu/crimevision-app.git  
 cd crimevision-app
 
+### 2. Installer les dépendances avec uv
 
-### 2.Installation des dépendances avec UV 
 uv sync
 
-### 3.Création du fichier .env
+### 3. Créer le fichier .env
+
 cp .env.example .env
 
-### 4.Remplir avec les informations de Neon
+### 4. Ajouter la connexion Neon
+
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DBNAME"
 
-### 5.Lancer l'application 
+### 5. Lancer l'application
+
 uv run crimevision-app
 
+---
 
-## 🗄 Requirement.txt
-Le fichier requirements.txt a été généré à partir de l’environnement virtuel avec uv pip freeze garantissant que les dépendances nécessaires pour exécuter l’application sont listées.
+## 🗄 requirements.txt
+
+Le fichier `requirements.txt` est généré à partir de l’environnement virtuel via `uv pip freeze`, afin de lister les dépendances nécessaires à l’exécution de l’application.
