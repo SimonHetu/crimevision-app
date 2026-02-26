@@ -315,7 +315,7 @@ class StatsPage(QWidget):
             ys = [p["count"] for p in series]
 
             n = len(xs)
-            x_idx = list(range(n))            # X = indices (robuste)
+            x_idx = list(range(n))            # X = indices 
 
             ax.plot(x_idx, ys, marker="o", linewidth=2)
 

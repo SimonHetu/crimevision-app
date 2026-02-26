@@ -1,3 +1,21 @@
+
+# =========================================================
+# Logique du Module
+# =========================================================
+#
+# Cette page agit comme un pont entre l’interface PySide6 et le backend Node.js :
+# l’utilisateur déclenche une action via un bouton, ce qui lance un script
+# TypeScript avec QProcess(non bloquant) dans le dossier backend (working directory configuré).
+# Le process s’exécute de manière asynchrone pour ne pas bloquer l’UI, et ses
+# sorties stdout/stderr sont capturées en temps réel via les signaux Qt puis
+# affichées dans la console intégrée. Pendant l’exécution, l’interface est
+# verrouillée (désactivation des boutons + progress bar visible) afin d’éviter
+# les conflits. Une fois le script terminé, le code de sortie est analysé pour
+# afficher un succès ou une erreur, puis l’UI est réactivée, complétant ainsi
+# le cycle interaction utilisateur → exécution backend → retour visuel.
+#
+# =========================================================
+
 from __future__ import annotations
 import os
 from PySide6.QtGui import QFont

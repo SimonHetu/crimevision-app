@@ -233,14 +233,12 @@ class IncidentService:
     # =========================================================
     def count_by_day(self, *, days: int = 30, category: str | None = None) -> List[Dict]:
         """
-        Retourne le nombre d’incidents par jour.
-
-        Optionnel :
-        - Filtrage par catégorie spécifique.
+        Retourne le nombre d’incidents par jour sur les X derniers jours.
+        Remplit aussi les jours manquants avec 0 pour que le graphique ait
+        toujours exactement X points.
         """
         start = datetime.utcnow() - timedelta(days=days)
 
-        # DATE_TRUNC coupe l'heure pour garder uniquement le jour
         day_expr = fn.DATE_TRUNC("day", Incident.date).alias("day")
 
         where = [
@@ -248,7 +246,6 @@ class IncidentService:
             Incident.date >= start,
         ]
 
-        # Filtre catégorie si fourni
         if category:
             where.append(fn.LOWER(Incident.category) == category.strip().lower())
 
@@ -262,10 +259,22 @@ class IncidentService:
             .order_by(day_expr)
         )
 
-        # Transformation en liste exploitable par matplotlib
-        out: List[Dict] = []
+        # 1) Résultats DB -> map "YYYY-MM-DD" -> count
+        by_day: Dict[str, int] = {}
         for r in q:
             d = r.day
             day_str = d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)
-            out.append({"day": day_str, "count": int(r.count)})
+            by_day[day_str] = int(r.count)
+
+        # 2) Génère une série complète (jours manquants => 0)
+        today = datetime.utcnow().date()
+        start_day = today - timedelta(days=days - 1)
+
+        out: List[Dict] = []
+        d = start_day
+        while d <= today:
+            s = d.strftime("%Y-%m-%d")
+            out.append({"day": s, "count": by_day.get(s, 0)})
+            d += timedelta(days=1)
+
         return out
