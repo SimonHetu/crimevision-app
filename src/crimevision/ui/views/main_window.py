@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QStackedWidget,
 )
 
+import os
 from .dashboard_page import DashboardPage
 from .users_page import UsersPage
 from .pdq_page import PdqPage
@@ -67,7 +68,7 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------
         self.stack = QStackedWidget()
 
-        self.auth = AuthService(api_base="https://crimevision-backend.vercel.app/")
+        self.auth = AuthService(api_base=os.getenv("API_BASE", "https://crimevision-backend.vercel.app"))
 
         self.dashboard_page = DashboardPage(auth=self.auth)
         self.users_page = UsersPage()
