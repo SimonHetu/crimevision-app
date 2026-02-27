@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 # Services utilisés pour lire les données depuis la base (utilisateurs et incidents)
 from crimevision.core.services.user_service import UserService
 from crimevision.core.services.incident_service import IncidentService
-
+from crimevision.core.services.auth_service import AuthService
 
 # Fonction utilitaire qui crée une "carte" réutilisable (un bloc UI stylé avec un titre) 
 def _card(title: str) -> tuple[QFrame, QVBoxLayout, QLabel]:
@@ -33,8 +33,9 @@ def _card(title: str) -> tuple[QFrame, QVBoxLayout, QLabel]:
 # KPI = Key Performance Indicator
 # Page Dashboard : écran principal qui affiche statistiques et aperçus de données
 class DashboardPage(QWidget):
-    def __init__(self):
+    def __init__(self, auth):
         super().__init__()
+        self.auth = auth
 
         # Initialisation des services pour récupérer les données depuis la DB
         self.user_service = UserService()
@@ -121,19 +122,30 @@ class DashboardPage(QWidget):
     # Recharge toutes les données affichées sur le dashboard (KPIs, tableaux, classements)
     def refresh(self):
         # Section KPI : calcule les statistiques globales et sur 7 jours
+        # --- KPI: total incidents
         try:
             total = self.incident_service.count_all()
+        except Exception:
+            total = None
+
+        # --- KPI: incidents 7 jours
+        try:
             last_7d = self.incident_service.count_since_days(7)
+        except Exception:
+            last_7d = None
+
+        # --- KPI: users
+        try:
             users = self.user_service.count_users()
+        except Exception:
+            users = None
 
-            pdq_count = (
-                self.incident_service
-                ._count_unique_pdqs_all_time()
-            )
-        except Exception as e:
-            total = last_7d = users = pdq_count = None
+        # --- KPI: PDQs
+        try:
+            pdq_count = self.incident_service.count_unique_pdqs()
+        except Exception:
+            pdq_count = None
 
-        # Mise à jour des KPI avec une valeur ou un placeholder "—" en cas d'erreur
         self.kpi_total_incidents.setText("—" if total is None else str(total))
         self.kpi_7d_incidents.setText("—" if last_7d is None else str(last_7d))
         self.kpi_users.setText("—" if users is None else str(users))

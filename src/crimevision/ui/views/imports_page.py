@@ -170,7 +170,7 @@ class ImportsPage(QWidget):
         # LOADING INDICATOR
         # ---------------------------------------------------------
         self.progress = QProgressBar()
-        self.progress.setRange(0, 0)  # 0,0 = infinite loading animation
+        self.progress.setRange(0, 0)  # 0,0 = Animation de chargement infinit
         self.progress.setVisible(False)
         root.addWidget(self.progress)
 

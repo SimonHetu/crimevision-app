@@ -20,8 +20,8 @@ class UsersPage(QWidget):
         layout.addWidget(QLabel("Users"))
 
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["ID", "Email", "Created", "Updated"])
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["ID", "Email", "Role", "Created", "Updated"])
 
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
@@ -88,8 +88,9 @@ class UsersPage(QWidget):
             self.table.setItem(row, 0, id_item)
 
             self.table.setItem(row, 1, QTableWidgetItem(u.get("email", "")))
-            self.table.setItem(row, 2, QTableWidgetItem(self.fmt_local(u.get("createdAt"))))
-            self.table.setItem(row, 3, QTableWidgetItem(self.fmt_local(u.get("updatedAt"))))
+            self.table.setItem(row, 2, QTableWidgetItem(u.get("role", "")))
+            self.table.setItem(row, 3, QTableWidgetItem(self.fmt_local(u.get("createdAt"))))
+            self.table.setItem(row, 4, QTableWidgetItem(self.fmt_local(u.get("updatedAt"))))
 
         self.table.resizeColumnsToContents()
 

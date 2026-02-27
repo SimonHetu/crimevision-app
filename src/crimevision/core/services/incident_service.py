@@ -278,3 +278,12 @@ class IncidentService:
             d += timedelta(days=1)
 
         return out
+    
+    
+    def count_unique_pdqs(self) -> int:
+        return (
+            Incident
+            .select(fn.COUNT(fn.DISTINCT(Incident.pdqId)))  # ⚠️ adapte le nom si besoin
+            .scalar()
+            or 0
+        )

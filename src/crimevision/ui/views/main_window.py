@@ -15,6 +15,8 @@ from .stats_page import StatsPage
 
 from crimevision.ui.theme.glow_button import GlowButton
 
+from crimevision.core.services.auth_service import AuthService
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -65,12 +67,16 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------
         self.stack = QStackedWidget()
 
-        self.dashboard_page = DashboardPage()
+        self.auth = AuthService(api_base="https://crimevision-backend.vercel.app/")
+
+        self.dashboard_page = DashboardPage(auth=self.auth)
         self.users_page = UsersPage()
         self.pdq_page = PdqPage()
         self.incidents_page = IncidentsPage()
         self.imports_page = ImportsPage()
         self.stats_page = StatsPage()
+
+        self.sidebar.setVisible(False)
 
         self.stack.addWidget(self.dashboard_page)
         self.stack.addWidget(self.users_page)
@@ -140,5 +146,28 @@ class MainWindow(QMainWindow):
             self.stack.setCurrentWidget(self.login_page)
 
     def _on_login_requested(self, username: str, password: str):
-        self.sidebar.setVisible(True)
-        self._switch_page(self.dashboard_page, self.btn_dashboard)
+        try:
+            # (optionnel) clear message
+            if self.login_page and hasattr(self.login_page, "set_error"):
+                self.login_page.set_error("")
+
+            # ✅ vrai login admin (backend)
+            self.auth.login_admin(username, password)
+
+            # ✅ succès
+            self.sidebar.setVisible(True)
+            self.stack.setCurrentWidget(self.dashboard_page)
+            self._set_active_button(self.btn_dashboard)
+
+            # force reload
+            if hasattr(self.dashboard_page, "refresh"):
+                self.dashboard_page.refresh()
+            elif hasattr(self.dashboard_page, "load"):
+                self.dashboard_page.load()
+
+        except Exception as e:
+            # ❌ échec : rester sur login + afficher l'erreur
+            self.sidebar.setVisible(False)
+            if self.login_page and hasattr(self.login_page, "set_error"):
+                self.login_page.set_error(f"❌ {e}")
+            self.show_login()

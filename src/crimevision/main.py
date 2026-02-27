@@ -62,15 +62,9 @@ def main():
 
     # Création de la fenêtre principale de l’application
     win = MainWindow()
-
-    # Création et intégration de la page de login dans la fenêtre principale
     login = LoginPage(ASSETS)
     win.set_login_page(login)
-
-    # Affichage initial de la page de connexion
     win.show_login()
-
-    # Affichage de la fenêtre principale
     win.show()
 
     # Lancement de la boucle principale Qt

@@ -31,7 +31,7 @@ class LoginPage(QWidget):
     def __init__(self, assets_dir: Path):
         super().__init__()
         self.assets_dir = assets_dir
-
+        
         # -------------------------
         # Layout racine
         # -------------------------
@@ -117,9 +117,9 @@ class LoginPage(QWidget):
         fg_layout.addWidget(card, 0, Qt.AlignHCenter)
 
         # Petit texte d’aide (plus neutre que “tout mot de passe marche”)
-        help_text = QLabel("")
-        help_text.setObjectName("loginHelp")
-        fg_layout.addWidget(help_text, 0, Qt.AlignHCenter)
+        self.help_text = QLabel("")
+        self.help_text.setObjectName("loginHelp")
+        fg_layout.addWidget(self.help_text, 0, Qt.AlignHCenter)
 
         fg_layout.addStretch()
 
@@ -215,3 +215,6 @@ class LoginPage(QWidget):
         user = self.username.text().strip()
         pwd = self.password.text()
         self.loginRequested.emit(user, pwd)
+
+    def set_error(self, msg: str):
+        self.help_text.setText(msg)
