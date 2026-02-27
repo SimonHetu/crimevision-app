@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon, QAction
 from PySide6.QtWidgets import (
     QWidget,
     QLabel,
@@ -31,7 +31,7 @@ class LoginPage(QWidget):
     def __init__(self, assets_dir: Path):
         super().__init__()
         self.assets_dir = assets_dir
-        
+
         # -------------------------
         # Layout racine
         # -------------------------
@@ -81,7 +81,7 @@ class LoginPage(QWidget):
         title.setObjectName("loginTitle")
         card_layout.addWidget(title)
 
-        # (Optionnel) sous-titre plus clean que "Admin access"
+        # Sous-titre
         subtitle = QLabel("Console d’administration")
         subtitle.setObjectName("loginSubtitle")
         card_layout.addWidget(subtitle)
@@ -97,6 +97,29 @@ class LoginPage(QWidget):
         self.password.setObjectName("loginInput")
         self.password.setPlaceholderText("Mot de passe")
         self.password.setEchoMode(QLineEdit.Password)
+
+        # --- Eye toggle (show/hide password) ---
+        self._pwd_visible = False
+
+        eye_open_path = self.assets_dir / "eye.svg"
+        eye_closed_path = self.assets_dir / "eye-off.svg"
+
+        self._eye_open_icon = QIcon(str(eye_open_path)) if eye_open_path.exists() else QIcon()
+        self._eye_closed_icon = QIcon(str(eye_closed_path)) if eye_closed_path.exists() else QIcon()
+
+        self._toggle_pwd_action = QAction(self.password)
+        self._toggle_pwd_action.setCheckable(True)
+        self._toggle_pwd_action.setToolTip("Afficher / masquer le mot de passe")
+
+        # icon initial
+        if not self._eye_closed_icon.isNull():
+            self._toggle_pwd_action.setIcon(self._eye_closed_icon)
+        else:
+            self._toggle_pwd_action.setText("👁")
+
+        # place it inside the line edit
+        self.password.addAction(self._toggle_pwd_action, QLineEdit.TrailingPosition)
+        self._toggle_pwd_action.toggled.connect(self._toggle_password_visibility)
 
         card_layout.addWidget(self.username)
         card_layout.addWidget(self.password)
@@ -116,7 +139,7 @@ class LoginPage(QWidget):
 
         fg_layout.addWidget(card, 0, Qt.AlignHCenter)
 
-        # Petit texte d’aide (plus neutre que “tout mot de passe marche”)
+        # Petit texte d’aide
         self.help_text = QLabel("")
         self.help_text.setObjectName("loginHelp")
         fg_layout.addWidget(self.help_text, 0, Qt.AlignHCenter)
@@ -181,7 +204,7 @@ class LoginPage(QWidget):
         #loginInput {
             background-color: #0f172a;
             color: #f8fafc;
-            padding: 10px 12px;
+            padding: 10px 34px 10px 12px; /* right padding for the eye */
             border: 1px solid #334155;
             border-radius: 8px;
         }
@@ -218,3 +241,16 @@ class LoginPage(QWidget):
 
     def set_error(self, msg: str):
         self.help_text.setText(msg)
+
+    def _toggle_password_visibility(self, checked: bool):
+        self._pwd_visible = checked
+        self.password.setEchoMode(QLineEdit.Normal if checked else QLineEdit.Password)
+
+        # keep cursor at end
+        self.password.setCursorPosition(len(self.password.text()))
+
+        # swap icon
+        if checked and not self._eye_open_icon.isNull():
+            self._toggle_pwd_action.setIcon(self._eye_open_icon)
+        elif (not checked) and not self._eye_closed_icon.isNull():
+            self._toggle_pwd_action.setIcon(self._eye_closed_icon)
